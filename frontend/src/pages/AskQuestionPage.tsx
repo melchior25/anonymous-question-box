@@ -23,6 +23,11 @@ function AskQuestionPage() {
 
   useEffect(() => {
     document.title = 'Ask anonymously'
+    document.body.classList.add('ask-page-active')
+
+    return () => {
+      document.body.classList.remove('ask-page-active')
+    }
   }, [])
 
   const remainingCharacters = useMemo(() => {

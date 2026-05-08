@@ -13,10 +13,25 @@
   box-sizing: border-box;
 }
 
+html {
+  min-width: 320px;
+  min-height: 100%;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+}
+
+body.ask-page-active {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body:not(.ask-page-active) {
+  overflow: auto;
 }
 
 button,
@@ -46,6 +61,19 @@ button:disabled {
     linear-gradient(135deg, #f7f1e7 0%, #f6f7fb 48%, #eef3f0 100%);
 }
 
+.public-page-shell {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(14px, 2.4vh, 26px) 18px;
+}
+
+.admin-page-shell {
+  min-height: 100vh;
+  overflow: auto;
+}
+
 .public-card,
 .admin-login-card,
 .admin-panel {
@@ -57,7 +85,14 @@ button:disabled {
   box-shadow: 0 28px 80px rgba(70, 55, 30, 0.12);
 }
 
-.public-card,
+.public-card {
+  max-height: calc(100dvh - 28px);
+  overflow: hidden;
+  padding: clamp(20px, 3.5vh, 38px);
+  display: flex;
+  flex-direction: column;
+}
+
 .admin-login-card {
   padding: clamp(28px, 5vw, 54px);
 }
@@ -70,7 +105,7 @@ button:disabled {
 .privacy-badge {
   display: inline-flex;
   width: fit-content;
-  margin-bottom: 20px;
+  margin-bottom: clamp(10px, 1.6vh, 20px);
   padding: 8px 12px;
   border-radius: 999px;
   background: #f3efe7;
@@ -85,7 +120,7 @@ button:disabled {
   font-weight: 850;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  margin-bottom: 14px;
+  margin-bottom: clamp(8px, 1.2vh, 14px);
 }
 
 h1,
@@ -95,10 +130,14 @@ p {
 }
 
 h1 {
-  margin-bottom: 14px;
+  margin-bottom: clamp(8px, 1.3vh, 14px);
   font-size: clamp(2rem, 5vw, 3.6rem);
   line-height: 0.98;
   letter-spacing: -0.07em;
+}
+
+.public-card h1 {
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
 }
 
 h2 {
@@ -109,24 +148,24 @@ h2 {
 
 .intro {
   max-width: 620px;
-  margin-bottom: 26px;
+  margin-bottom: clamp(14px, 2vh, 26px);
   color: #5b6473;
   font-size: 1.05rem;
-  line-height: 1.7;
+  line-height: 1.55;
 }
 
 .public-info-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  margin-bottom: 26px;
+  margin-bottom: clamp(14px, 2vh, 24px);
 }
 
 .info-pill {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 52px;
+  min-height: 48px;
   padding: 10px 12px;
   border-radius: 18px;
   background: #fbfaf8;
@@ -152,16 +191,20 @@ h2 {
 }
 
 .footer-note {
-  margin: 18px 0 0;
+  margin: clamp(10px, 1.6vh, 18px) 0 0;
   color: #7a8190;
   font-size: 0.92rem;
-  line-height: 1.55;
+  line-height: 1.45;
 }
 
 .question-form,
 .login-form {
   display: grid;
-  gap: 14px;
+  gap: clamp(10px, 1.5vh, 14px);
+}
+
+.public-card .question-form {
+  min-height: 0;
 }
 
 label {
@@ -184,10 +227,12 @@ input {
 }
 
 textarea {
-  min-height: 230px;
+  min-height: clamp(140px, 26vh, 230px);
+  max-height: 30vh;
   padding: 18px;
-  resize: vertical;
+  resize: none;
   line-height: 1.55;
+  overflow: auto;
 }
 
 input {
@@ -238,7 +283,7 @@ input:focus {
 }
 
 .primary-button {
-  min-height: 56px;
+  min-height: 54px;
   padding: 0 24px;
   background: #111827;
   color: #fff;
@@ -288,6 +333,10 @@ input:focus {
   line-height: 1.5;
 }
 
+.public-card .error-message {
+  margin-bottom: 0;
+}
+
 .error-message {
   background: #fff1f0;
   color: #a31912;
@@ -305,6 +354,10 @@ input:focus {
   border-radius: 26px;
   background: #f7faf7;
   border: 1px solid rgba(42, 98, 61, 0.12);
+}
+
+.public-card .success-panel {
+  overflow: hidden;
 }
 
 .setup-note {
@@ -528,11 +581,49 @@ input:focus {
   text-decoration: underline;
 }
 
+@media (max-height: 760px) and (min-width: 681px) {
+  .privacy-badge {
+    display: none;
+  }
+
+  .public-card {
+    padding: 22px 30px;
+  }
+
+  .public-card h1 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+  }
+
+  .intro {
+    font-size: 0.98rem;
+    line-height: 1.45;
+  }
+
+  .info-pill {
+    min-height: 42px;
+    padding: 8px 10px;
+  }
+
+  textarea {
+    min-height: 128px;
+    max-height: 24vh;
+  }
+
+  .primary-button {
+    min-height: 50px;
+  }
+}
+
 @media (max-width: 680px) {
   .public-page-shell,
   .admin-page-shell {
     align-items: start;
     padding-top: 18px;
+  }
+
+  .public-page-shell {
+    place-items: center;
+    padding: 12px;
   }
 
   .public-card,
@@ -541,8 +632,18 @@ input:focus {
     border-radius: 24px;
   }
 
+  .public-card {
+    max-height: calc(100dvh - 24px);
+    padding: 20px;
+  }
+
   .public-info-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .info-pill {
+    min-height: 42px;
   }
 
   .admin-header,
@@ -566,5 +667,40 @@ input:focus {
   .secondary-button,
   .danger-button {
     width: 100%;
+  }
+
+  textarea {
+    min-height: clamp(130px, 24vh, 190px);
+    max-height: 26vh;
+  }
+}
+
+@media (max-height: 680px) {
+  .public-info-grid {
+    display: none;
+  }
+
+  .footer-note {
+    display: none;
+  }
+
+  textarea {
+    min-height: 120px;
+    max-height: 24vh;
+  }
+}
+
+@media (max-height: 590px) {
+  .intro {
+    display: none;
+  }
+
+  .public-card h1 {
+    font-size: clamp(1.8rem, 4vw, 2.35rem);
+  }
+
+  textarea {
+    min-height: 110px;
+    max-height: 22vh;
   }
 }
