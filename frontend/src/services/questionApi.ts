@@ -1,0 +1,119 @@
+import type { Question } from '../types/question.types'
+
+function getApiUrl() {
+  const configuredApiUrl = (import.meta.env.VITE_API_URL || '').trim()
+
+  if (configuredApiUrl) {
+    return configuredApiUrl
+  }
+
+  const hostname = window.location.hostname
+  const port = window.location.port
+  const isLocalDevFrontend = ['5173', '5174', '5175'].includes(port)
+
+  if (isLocalDevFrontend) {
+    return `${window.location.protocol}//${hostname}:5000`
+  }
+
+  return window.location.origin
+}
+
+const API_URL = getApiUrl()
+
+type ApiResult<T> = {
+  ok: boolean
+  message?: string
+} & T
+
+async function readResponse<T>(response: Response): Promise<ApiResult<T>> {
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Something went wrong.')
+  }
+
+  return data
+}
+
+function getNetworkErrorMessage() {
+  return 'Cannot reach the backend. Make sure the app server is running.'
+}
+
+async function requestWithNetworkMessage<T>(request: () => Promise<Response>) {
+  try {
+    const response = await request()
+    return readResponse<T>(response)
+  } catch (error) {
+    if (error instanceof Error && error.message !== 'Failed to fetch') {
+      throw error
+    }
+
+    throw new Error(getNetworkErrorMessage())
+  }
+}
+
+export async function submitQuestion(question: string) {
+  return requestWithNetworkMessage<{ question: { id: string; createdAt: string } }>(() => {
+    return fetch(`${API_URL}/api/questions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ question })
+    })
+  })
+}
+
+export async function getAdminQuestions(adminPassword: string) {
+  return requestWithNetworkMessage<{ questions: Question[] }>(() => {
+    return fetch(`${API_URL}/api/questions/admin`, {
+      headers: {
+        'x-admin-password': adminPassword
+      }
+    })
+  })
+}
+
+export async function markQuestionAnswered(questionId: string, adminPassword: string) {
+  return requestWithNetworkMessage<{ question: Question }>(() => {
+    return fetch(`${API_URL}/api/questions/${questionId}/answered`, {
+      method: 'PATCH',
+      headers: {
+        'x-admin-password': adminPassword
+      }
+    })
+  })
+}
+
+export async function markQuestionNew(questionId: string, adminPassword: string) {
+  return requestWithNetworkMessage<{ question: Question }>(() => {
+    return fetch(`${API_URL}/api/questions/${questionId}/new`, {
+      method: 'PATCH',
+      headers: {
+        'x-admin-password': adminPassword
+      }
+    })
+  })
+}
+
+export async function deleteQuestion(questionId: string, adminPassword: string) {
+  return requestWithNetworkMessage<Record<string, never>>(() => {
+    return fetch(`${API_URL}/api/questions/${questionId}`, {
+      method: 'DELETE',
+      headers: {
+        'x-admin-password': adminPassword
+      }
+    })
+  })
+}
+
+export async function deleteAnsweredQuestions(adminPassword: string) {
+  return requestWithNetworkMessage<{ deletedCount: number }>(() => {
+    return fetch(`${API_URL}/api/questions/admin/answered`, {
+      method: 'DELETE',
+      headers: {
+        'x-admin-password': adminPassword
+      }
+    })
+  })
+}

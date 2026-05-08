@@ -1,0 +1,13 @@
+node_modules
+.env
+.env.local
+dist
+.DS_Store
+
+frontend/dist
+frontend/node_modules
+backend/node_modules
+
+backend/data/questions.json
+backend/data/questions.json.tmp
+backend/data/*.broken-*
