@@ -25,6 +25,23 @@ type ApiResult<T> = {
   message?: string
 } & T
 
+export type EmailStatus = {
+  enabled: boolean
+  hostSet: boolean
+  host: string
+  portSet: boolean
+  port: string
+  secureSet: boolean
+  secure: string
+  userSet: boolean
+  toSet: boolean
+  fromSet: boolean
+  passSet: boolean
+  passLength: number
+  publicUrlSet: boolean
+  publicUrl: string
+}
+
 async function readResponse<T>(response: Response): Promise<ApiResult<T>> {
   const data = await response.json().catch(() => ({}))
 
@@ -67,6 +84,27 @@ export async function submitQuestion(question: string) {
 export async function getAdminQuestions(adminPassword: string) {
   return requestWithNetworkMessage<{ questions: Question[] }>(() => {
     return fetch(`${API_URL}/api/questions/admin`, {
+      headers: {
+        'x-admin-password': adminPassword
+      }
+    })
+  })
+}
+
+export async function getEmailStatus(adminPassword: string) {
+  return requestWithNetworkMessage<{ email: EmailStatus }>(() => {
+    return fetch(`${API_URL}/api/questions/admin/email-status`, {
+      headers: {
+        'x-admin-password': adminPassword
+      }
+    })
+  })
+}
+
+export async function sendTestEmail(adminPassword: string) {
+  return requestWithNetworkMessage<{ messageId: string | null }>(() => {
+    return fetch(`${API_URL}/api/questions/admin/test-email`, {
+      method: 'POST',
       headers: {
         'x-admin-password': adminPassword
       }

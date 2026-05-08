@@ -4,6 +4,8 @@ import {
   deleteQuestion,
   exportQuestionsCsv,
   getAdminQuestions,
+  getEmailStatus,
+  sendTestEmail,
   markQuestionAnswered,
   markQuestionNew
 } from '../services/questionApi'
@@ -30,6 +32,7 @@ function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [testingEmail, setTestingEmail] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [copyStatus, setCopyStatus] = useState('Copy public link')
@@ -85,6 +88,27 @@ function AdminQuestionsPage() {
       window.setTimeout(() => setSuccessMessage(''), 1400)
     } catch {
       setErrorMessage('Could not copy the question.')
+    }
+  }
+
+  async function handleSendTestEmail() {
+    try {
+      setTestingEmail(true)
+      setErrorMessage('')
+      const status = await getEmailStatus(adminPassword)
+
+      if (!status.email.enabled || !status.email.passSet || !status.email.toSet || !status.email.userSet) {
+        setErrorMessage('Email settings are incomplete in Render. Check QUESTION_EMAIL_ENABLED, SMTP_USER, SMTP_PASS, and QUESTION_EMAIL_TO.')
+        return
+      }
+
+      await sendTestEmail(adminPassword)
+      setSuccessMessage('Test email sent. Check your inbox and spam folder.')
+      window.setTimeout(() => setSuccessMessage(''), 2600)
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Could not send test email.')
+    } finally {
+      setTestingEmail(false)
     }
   }
 
@@ -279,6 +303,15 @@ function AdminQuestionsPage() {
           </div>
 
           <div className="admin-actions">
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={testingEmail}
+              onClick={handleSendTestEmail}
+            >
+              {testingEmail ? 'Sending test...' : 'Send test email'}
+            </button>
+
             <button
               type="button"
               className="secondary-button"

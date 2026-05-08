@@ -10,7 +10,9 @@ const {
   recordQuestionSubmission
 } = require('../services/questionRateLimitService')
 const {
-  sendQuestionEmailNotification
+  getEmailSettingsStatus,
+  sendQuestionEmailNotification,
+  sendQuestionTestEmail
 } = require('../services/questionEmailService')
 
 function cleanQuestion(value) {
@@ -114,6 +116,44 @@ async function getAdminQuestions(req, res, next) {
   }
 }
 
+async function getAdminEmailStatus(req, res, next) {
+  try {
+    res.json({
+      ok: true,
+      email: getEmailSettingsStatus()
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function sendAdminTestEmail(req, res, next) {
+  try {
+    const result = await sendQuestionTestEmail()
+
+    if (result.skipped) {
+      return res.status(400).json({
+        ok: false,
+        message: result.reason || 'Email test was skipped.'
+      })
+    }
+
+    res.json({
+      ok: true,
+      message: 'Test email sent.',
+      messageId: result.messageId || null
+    })
+  } catch (error) {
+    console.warn('Admin test email failed.')
+    console.warn(error)
+
+    res.status(500).json({
+      ok: false,
+      message: error.message || 'Test email failed.'
+    })
+  }
+}
+
 async function exportAdminQuestionsCsv(req, res, next) {
   try {
     const questions = await getQuestions()
@@ -208,6 +248,8 @@ async function deleteAnsweredQuestions(req, res, next) {
 module.exports = {
   createQuestion,
   getAdminQuestions,
+  getAdminEmailStatus,
+  sendAdminTestEmail,
   exportAdminQuestionsCsv,
   markQuestionAnswered,
   markQuestionNew,
