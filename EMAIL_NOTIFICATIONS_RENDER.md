@@ -17,10 +17,19 @@ QUESTION_EMAIL_SUBJECT=New anonymous question received
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=465
 SMTP_SECURE=true
+SMTP_FAMILY=4
 SMTP_USER=your-email@example.com
 SMTP_PASS=your-16-digit-app-password-without-spaces
 
 PUBLIC_URL=https://anonymous-question-box.onrender.com
+```
+
+## Why SMTP_FAMILY=4 matters
+
+Render may try Gmail SMTP through IPv6. If the log shows `ENETUNREACH` with an IPv6 address, force IPv4 with:
+
+```text
+SMTP_FAMILY=4
 ```
 
 ## Gmail notes
@@ -57,13 +66,13 @@ In Render:
 Manual Deploy -> Deploy latest commit
 ```
 
-Then submit one test question through:
+Then open the admin page and click:
 
 ```text
-https://anonymous-question-box.onrender.com/ask
+Send test email
 ```
 
-Check your inbox.
+Check your inbox and spam folder.
 
 ## Manual backup
 

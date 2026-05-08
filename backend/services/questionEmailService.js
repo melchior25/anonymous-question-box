@@ -13,6 +13,16 @@ function getBooleanEnv(name, fallback = false) {
   return fallback
 }
 
+function getNumberEnv(name, fallback) {
+  const parsed = Number(process.env[name])
+
+  if (Number.isFinite(parsed)) {
+    return parsed
+  }
+
+  return fallback
+}
+
 function getReference(id) {
   if (typeof id !== 'string') return 'UNKNOWN'
   return id.split('_').slice(-1)[0]?.slice(0, 6).toUpperCase() || 'UNKNOWN'
@@ -27,6 +37,7 @@ function getEmailSettingsStatus() {
   const host = (process.env.SMTP_HOST || '').trim()
   const port = String(process.env.SMTP_PORT || '').trim()
   const secure = String(process.env.SMTP_SECURE || '').trim()
+  const family = String(process.env.SMTP_FAMILY || '4').trim()
   const user = (process.env.SMTP_USER || '').trim()
   const pass = (process.env.SMTP_PASS || '').trim()
   const to = (process.env.QUESTION_EMAIL_TO || '').trim()
@@ -41,6 +52,8 @@ function getEmailSettingsStatus() {
     port,
     secureSet: Boolean(secure),
     secure,
+    familySet: Boolean(family),
+    family,
     userSet: Boolean(user),
     toSet: Boolean(to),
     fromSet: Boolean(from),
@@ -59,6 +72,7 @@ function logEmailSettingsStatus() {
   console.log(`  SMTP_HOST set: ${status.hostSet}${status.hostSet ? ` (${status.host})` : ''}`)
   console.log(`  SMTP_PORT set: ${status.portSet}${status.portSet ? ` (${status.port})` : ''}`)
   console.log(`  SMTP_SECURE set: ${status.secureSet}${status.secureSet ? ` (${status.secure})` : ''}`)
+  console.log(`  SMTP_FAMILY: ${status.family}`)
   console.log(`  SMTP_USER set: ${status.userSet}`)
   console.log(`  SMTP_PASS set: ${status.passSet} length=${status.passLength}`)
   console.log(`  QUESTION_EMAIL_TO set: ${status.toSet}`)
@@ -70,6 +84,7 @@ function getTransportConfig() {
   const host = (process.env.SMTP_HOST || '').trim()
   const port = Number(process.env.SMTP_PORT || 587)
   const secure = getBooleanEnv('SMTP_SECURE', port === 465)
+  const family = getNumberEnv('SMTP_FAMILY', 4)
   const user = (process.env.SMTP_USER || '').trim()
   const pass = (process.env.SMTP_PASS || '').trim()
 
@@ -81,6 +96,10 @@ function getTransportConfig() {
     host,
     port,
     secure,
+    family,
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
     auth: {
       user,
       pass
@@ -177,6 +196,8 @@ async function sendQuestionEmailNotification(question) {
       reason: 'Recipient or sender missing.'
     }
   }
+
+  console.log(`Sending email notification via ${transportConfig.host}:${transportConfig.port} secure=${transportConfig.secure} family=${transportConfig.family}`)
 
   const transporter = nodemailer.createTransport(transportConfig)
 
