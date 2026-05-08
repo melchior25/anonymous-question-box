@@ -86,6 +86,7 @@ button:disabled {
 }
 
 .public-card {
+  align-items: center;
   max-height: calc(100dvh - 28px);
   overflow: hidden;
   padding: clamp(20px, 3.5vh, 38px);
@@ -100,6 +101,14 @@ button:disabled {
 .admin-panel {
   width: min(100%, 980px);
   padding: clamp(22px, 4vw, 38px);
+}
+
+.public-intro-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .privacy-badge {
@@ -155,6 +164,7 @@ h2 {
 }
 
 .public-info-grid {
+  width: 100%;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
@@ -191,6 +201,8 @@ h2 {
 }
 
 .footer-note {
+  width: 100%;
+  text-align: center;
   margin: clamp(10px, 1.6vh, 18px) 0 0;
   color: #7a8190;
   font-size: 0.92rem;
@@ -204,6 +216,8 @@ h2 {
 }
 
 .public-card .question-form {
+  width: 100%;
+  text-align: left;
   min-height: 0;
 }
 
@@ -357,6 +371,8 @@ input:focus {
 }
 
 .public-card .success-panel {
+  width: 100%;
+  text-align: center;
   overflow: hidden;
 }
 
@@ -415,6 +431,8 @@ input:focus {
 }
 
 .sent-reference-card {
+  margin-left: auto;
+  margin-right: auto;
   width: fit-content;
   min-width: 180px;
   margin: 16px 0 18px;
@@ -582,11 +600,20 @@ input:focus {
 }
 
 @media (max-height: 760px) and (min-width: 681px) {
-  .privacy-badge {
+  .public-intro-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.privacy-badge {
     display: none;
   }
 
   .public-card {
+  align-items: center;
     padding: 22px 30px;
   }
 
@@ -633,11 +660,13 @@ input:focus {
   }
 
   .public-card {
+  align-items: center;
     max-height: calc(100dvh - 24px);
     padding: 20px;
   }
 
   .public-info-grid {
+  width: 100%;
     grid-template-columns: 1fr;
     gap: 8px;
   }
@@ -677,10 +706,13 @@ input:focus {
 
 @media (max-height: 680px) {
   .public-info-grid {
+  width: 100%;
     display: none;
   }
 
   .footer-note {
+  width: 100%;
+  text-align: center;
     display: none;
   }
 

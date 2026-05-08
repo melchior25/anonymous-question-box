@@ -4,11 +4,11 @@ import { submitQuestion } from '../services/questionApi'
 const MAX_LENGTH = 1000
 
 function createReference(id: string) {
-  return id.split('_').slice(-1)[0]?.slice(0, 6).toUpperCase() || 'SENT'
+  return id.split('_').slice(-1)[0]?.slice(0, 6).toUpperCase() || 'VERSTUURD'
 }
 
 function formatSentTime(value: string) {
-  return new Intl.DateTimeFormat('en', {
+  return new Intl.DateTimeFormat('nl-NL', {
     dateStyle: 'medium',
     timeStyle: 'short'
   }).format(new Date(value))
@@ -22,7 +22,7 @@ function AskQuestionPage() {
   const [sentTime, setSentTime] = useState('')
 
   useEffect(() => {
-    document.title = 'Ask anonymously'
+    document.title = 'Vragen & Antwoorden'
     document.body.classList.add('ask-page-active')
 
     return () => {
@@ -41,7 +41,7 @@ function AskQuestionPage() {
 
     if (!cleanQuestion) {
       setStatus('error')
-      setErrorMessage('Please type your question first.')
+      setErrorMessage('Typ eerst je vraag.')
       return
     }
 
@@ -55,49 +55,51 @@ function AskQuestionPage() {
       setStatus('sent')
     } catch (error) {
       setStatus('error')
-      setErrorMessage(error instanceof Error ? error.message : 'Could not send your question.')
+      setErrorMessage(error instanceof Error ? error.message : 'Je vraag kon niet worden verzonden.')
     }
   }
 
   return (
     <main className="public-page-shell">
       <section className="public-card">
-        <div className="privacy-badge">No name. No account. No login.</div>
+        <div className="public-intro-block">
+          <div className="privacy-badge">Geen naam. Geen account. Geen login.</div>
 
-        <div className="eyebrow">Anonymous question box</div>
+          <div className="eyebrow">Anoniem vragenformulier</div>
 
-        <h1>Ask your question anonymously</h1>
+          <h1>Vragen &amp; Antwoorden</h1>
 
-        <p className="intro">
-          Write your question in the box below. You do not need to add your name,
-          email address, username, or any personal information.
-        </p>
+          <p className="intro">
+            Heb je een vraag? Schrijf die hieronder op. Je hoeft geen naam,
+            e-mailadres, gebruikersnaam of andere persoonlijke gegevens in te vullen.
+          </p>
+        </div>
 
         <div className="public-info-grid">
           <div className="info-pill">
             <strong>1</strong>
-            <span>Type your question</span>
+            <span>Typ je vraag</span>
           </div>
           <div className="info-pill">
             <strong>2</strong>
-            <span>Send anonymously</span>
+            <span>Verstuur anoniem</span>
           </div>
           <div className="info-pill">
             <strong>3</strong>
-            <span>Done</span>
+            <span>Klaar</span>
           </div>
         </div>
 
         {status === 'sent' ? (
           <div className="success-panel">
             <div className="success-icon">OK</div>
-            <h2>Your question has been sent.</h2>
+            <h2>Je vraag is verstuurd.</h2>
             <p>
-              Thank you. Your question was received anonymously.
+              Bedankt. Je vraag is anoniem ontvangen.
             </p>
 
             <div className="sent-reference-card">
-              <span>Sent reference</span>
+              <span>Verzendcode</span>
               <strong>{sentReference}</strong>
               <small>{sentTime}</small>
             </div>
@@ -107,18 +109,18 @@ function AskQuestionPage() {
               className="secondary-button"
               onClick={() => setStatus('idle')}
             >
-              Ask another question
+              Nog een vraag stellen
             </button>
           </div>
         ) : (
           <form className="question-form" onSubmit={handleSubmit}>
-            <label htmlFor="question">Your question</label>
+            <label htmlFor="question">Jouw vraag</label>
 
             <textarea
               id="question"
               value={question}
               maxLength={MAX_LENGTH}
-              placeholder="Type your question here..."
+              placeholder="Typ hier je vraag..."
               onChange={(event) => {
                 setQuestion(event.target.value)
 
@@ -131,9 +133,9 @@ function AskQuestionPage() {
 
             <div className="form-row">
               <span className={remainingCharacters < 80 ? 'danger-count' : ''}>
-                {remainingCharacters} characters left
+                {remainingCharacters} tekens over
               </span>
-              <span>Keep it respectful and clear</span>
+              <span>Houd je vraag duidelijk en respectvol</span>
             </div>
 
             {status === 'error' && (
@@ -145,13 +147,13 @@ function AskQuestionPage() {
               className="primary-button"
               disabled={status === 'sending'}
             >
-              {status === 'sending' ? 'Sending...' : 'Send anonymously'}
+              {status === 'sending' ? 'Versturen...' : 'Anoniem verzenden'}
             </button>
           </form>
         )}
 
         <p className="footer-note">
-          This page only sends your question. It does not ask for a name or account.
+          Dit formulier vraagt niet om een naam of account. Alleen je vraag wordt verzonden.
         </p>
       </section>
     </main>
