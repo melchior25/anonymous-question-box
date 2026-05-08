@@ -1,3 +1,4 @@
+const dns = require('dns')
 const nodemailer = require('nodemailer')
 
 function isEmailEnabled() {
@@ -32,12 +33,30 @@ function getPublicUrl() {
   return (process.env.PUBLIC_URL || '').trim()
 }
 
+function shouldForceIPv4() {
+  return String(process.env.SMTP_FORCE_IPV4 || 'true').toLowerCase() !== 'false'
+}
+
+function lookupIPv4(hostname) {
+  return new Promise((resolve, reject) => {
+    dns.lookup(hostname, { family: 4 }, (error, address) => {
+      if (error) {
+        reject(error)
+        return
+      }
+
+      resolve(address)
+    })
+  })
+}
+
 function getEmailSettingsStatus() {
   const enabled = isEmailEnabled()
   const host = (process.env.SMTP_HOST || '').trim()
   const port = String(process.env.SMTP_PORT || '').trim()
   const secure = String(process.env.SMTP_SECURE || '').trim()
   const family = String(process.env.SMTP_FAMILY || '4').trim()
+  const forceIPv4 = shouldForceIPv4()
   const user = (process.env.SMTP_USER || '').trim()
   const pass = (process.env.SMTP_PASS || '').trim()
   const to = (process.env.QUESTION_EMAIL_TO || '').trim()
@@ -54,6 +73,7 @@ function getEmailSettingsStatus() {
     secure,
     familySet: Boolean(family),
     family,
+    forceIPv4,
     userSet: Boolean(user),
     toSet: Boolean(to),
     fromSet: Boolean(from),
@@ -73,6 +93,7 @@ function logEmailSettingsStatus() {
   console.log(`  SMTP_PORT set: ${status.portSet}${status.portSet ? ` (${status.port})` : ''}`)
   console.log(`  SMTP_SECURE set: ${status.secureSet}${status.secureSet ? ` (${status.secure})` : ''}`)
   console.log(`  SMTP_FAMILY: ${status.family}`)
+  console.log(`  SMTP_FORCE_IPV4: ${status.forceIPv4}`)
   console.log(`  SMTP_USER set: ${status.userSet}`)
   console.log(`  SMTP_PASS set: ${status.passSet} length=${status.passLength}`)
   console.log(`  QUESTION_EMAIL_TO set: ${status.toSet}`)
@@ -80,26 +101,41 @@ function logEmailSettingsStatus() {
   console.log(`  PUBLIC_URL set: ${status.publicUrlSet}${status.publicUrlSet ? ` (${status.publicUrl})` : ''}`)
 }
 
-function getTransportConfig() {
-  const host = (process.env.SMTP_HOST || '').trim()
+async function getTransportConfig() {
+  const configuredHost = (process.env.SMTP_HOST || '').trim()
   const port = Number(process.env.SMTP_PORT || 587)
   const secure = getBooleanEnv('SMTP_SECURE', port === 465)
   const family = getNumberEnv('SMTP_FAMILY', 4)
   const user = (process.env.SMTP_USER || '').trim()
   const pass = (process.env.SMTP_PASS || '').trim()
 
-  if (!host || !port || !user || !pass) {
+  if (!configuredHost || !port || !user || !pass) {
     return null
   }
 
+  let connectionHost = configuredHost
+
+  if (shouldForceIPv4()) {
+    try {
+      connectionHost = await lookupIPv4(configuredHost)
+      console.log(`SMTP IPv4 resolved: ${configuredHost} -> ${connectionHost}`)
+    } catch (error) {
+      console.warn(`SMTP IPv4 lookup failed for ${configuredHost}. Falling back to hostname.`)
+      console.warn(error)
+    }
+  }
+
   return {
-    host,
+    host: connectionHost,
     port,
     secure,
     family,
     connectionTimeout: 15000,
     greetingTimeout: 15000,
     socketTimeout: 20000,
+    tls: {
+      servername: configuredHost
+    },
     auth: {
       user,
       pass
@@ -173,7 +209,7 @@ async function sendQuestionEmailNotification(question) {
     }
   }
 
-  const transportConfig = getTransportConfig()
+  const transportConfig = await getTransportConfig()
 
   if (!transportConfig) {
     console.warn('Question email notification skipped: SMTP settings are incomplete.')

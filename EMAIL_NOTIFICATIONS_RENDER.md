@@ -18,19 +18,23 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=465
 SMTP_SECURE=true
 SMTP_FAMILY=4
+SMTP_FORCE_IPV4=true
 SMTP_USER=your-email@example.com
 SMTP_PASS=your-16-digit-app-password-without-spaces
 
 PUBLIC_URL=https://anonymous-question-box.onrender.com
 ```
 
-## Why SMTP_FAMILY=4 matters
+## Why SMTP_FORCE_IPV4=true matters
 
 Render may try Gmail SMTP through IPv6. If the log shows `ENETUNREACH` with an IPv6 address, force IPv4 with:
 
 ```text
 SMTP_FAMILY=4
+SMTP_FORCE_IPV4=true
 ```
+
+This version also resolves `smtp.gmail.com` to an IPv4 address before connecting.
 
 ## Gmail notes
 
