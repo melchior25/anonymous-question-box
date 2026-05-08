@@ -74,6 +74,32 @@ export async function getAdminQuestions(adminPassword: string) {
   })
 }
 
+export async function exportQuestionsCsv(adminPassword: string) {
+  const response = await fetch(`${API_URL}/api/questions/admin/export.csv`, {
+    headers: {
+      'x-admin-password': adminPassword
+    }
+  })
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}))
+    throw new Error(data.message || 'Could not export questions.')
+  }
+
+  const blob = await response.blob()
+  const downloadUrl = window.URL.createObjectURL(blob)
+  const dateLabel = new Date().toISOString().slice(0, 10)
+
+  const anchor = document.createElement('a')
+  anchor.href = downloadUrl
+  anchor.download = `anonymous-questions-${dateLabel}.csv`
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+
+  window.URL.revokeObjectURL(downloadUrl)
+}
+
 export async function markQuestionAnswered(questionId: string, adminPassword: string) {
   return requestWithNetworkMessage<{ question: Question }>(() => {
     return fetch(`${API_URL}/api/questions/${questionId}/answered`, {

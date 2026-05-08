@@ -9,10 +9,41 @@ const {
   getSubmissionCooldownStatus,
   recordQuestionSubmission
 } = require('../services/questionRateLimitService')
+const {
+  sendQuestionEmailNotification
+} = require('../services/questionEmailService')
 
 function cleanQuestion(value) {
   if (typeof value !== 'string') return ''
   return value.replace(/\s+/g, ' ').trim()
+}
+
+function getQuestionReference(id) {
+  if (typeof id !== 'string') return 'UNKNOWN'
+  return id.split('_').slice(-1)[0]?.slice(0, 6).toUpperCase() || 'UNKNOWN'
+}
+
+function escapeCsvValue(value) {
+  const stringValue = value === null || value === undefined ? '' : String(value)
+  return `"${stringValue.replace(/"/g, '""')}"`
+}
+
+function createQuestionsCsv(questions) {
+  const header = ['Reference', 'Created At', 'Status', 'Question', 'Answered At']
+
+  const rows = questions.map((question) => {
+    return [
+      getQuestionReference(question.id),
+      question.createdAt || '',
+      question.answered ? 'Answered' : 'New',
+      question.text || '',
+      question.answeredAt || ''
+    ]
+  })
+
+  return [header, ...rows]
+    .map((row) => row.map(escapeCsvValue).join(','))
+    .join('\n')
 }
 
 async function createQuestion(req, res, next) {
@@ -52,6 +83,11 @@ async function createQuestion(req, res, next) {
     const savedQuestion = await addQuestion(question)
     recordQuestionSubmission(cooldownStatus.clientKey)
 
+    sendQuestionEmailNotification(savedQuestion).catch((error) => {
+      console.warn('Question was saved, but email notification failed.')
+      console.warn(error)
+    })
+
     res.status(201).json({
       ok: true,
       message: 'Question submitted.',
@@ -73,6 +109,20 @@ async function getAdminQuestions(req, res, next) {
       ok: true,
       questions
     })
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function exportAdminQuestionsCsv(req, res, next) {
+  try {
+    const questions = await getQuestions()
+    const csv = createQuestionsCsv(questions)
+    const dateLabel = new Date().toISOString().slice(0, 10)
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+    res.setHeader('Content-Disposition', `attachment; filename="anonymous-questions-${dateLabel}.csv"`)
+    res.send(csv)
   } catch (error) {
     next(error)
   }
@@ -158,6 +208,7 @@ async function deleteAnsweredQuestions(req, res, next) {
 module.exports = {
   createQuestion,
   getAdminQuestions,
+  exportAdminQuestionsCsv,
   markQuestionAnswered,
   markQuestionNew,
   deleteQuestion,

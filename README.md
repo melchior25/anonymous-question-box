@@ -55,6 +55,7 @@ Read:
 ```text
 DEPLOY_RENDER_GUIDE.md
 ONLINE_DEPLOYMENT_CHECKLIST.md
+EMAIL_NOTIFICATIONS_RENDER.md
 ```
 
 Recommended Render settings:
@@ -83,14 +84,28 @@ Important production env vars:
 NODE_ENV=production
 ADMIN_PASSWORD=your-strong-password
 QUESTION_COOLDOWN_SECONDS=20
-QUESTION_STORAGE_FILE=/var/data/questions.json
+PUBLIC_URL=https://anonymous-question-box.onrender.com
+```
+
+Optional email notification env vars:
+
+```text
+QUESTION_EMAIL_ENABLED=true
+QUESTION_EMAIL_TO=your-email@example.com
+QUESTION_EMAIL_FROM=your-email@example.com
+QUESTION_EMAIL_SUBJECT=New anonymous question received
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-16-digit-app-password-without-spaces
 ```
 
 ## Storage warning
 
 The current app saves questions in a JSON file.
 
-For online use, use a persistent disk or switch to a real database. Without persistent storage, saved questions can be lost when the service restarts or redeploys.
+On Render Free, redeploys/restarts can clear saved questions. Use the email notification feature and Export CSV button for backups.
 
 ## Helper scripts
 

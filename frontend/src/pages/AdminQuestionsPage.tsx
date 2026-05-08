@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   deleteAnsweredQuestions,
   deleteQuestion,
+  exportQuestionsCsv,
   getAdminQuestions,
   markQuestionAnswered,
   markQuestionNew
@@ -28,6 +29,7 @@ function AdminQuestionsPage() {
   const [passwordInput, setPasswordInput] = useState(adminPassword)
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [copyStatus, setCopyStatus] = useState('Copy public link')
@@ -83,6 +85,20 @@ function AdminQuestionsPage() {
       window.setTimeout(() => setSuccessMessage(''), 1400)
     } catch {
       setErrorMessage('Could not copy the question.')
+    }
+  }
+
+  async function handleExportCsv() {
+    try {
+      setExporting(true)
+      setErrorMessage('')
+      await exportQuestionsCsv(adminPassword)
+      setSuccessMessage('Questions exported.')
+      window.setTimeout(() => setSuccessMessage(''), 1800)
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Could not export questions.')
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -251,8 +267,8 @@ function AdminQuestionsPage() {
             <span className="public-link-text">{publicQuestionLink}</span>
           </p>
           <p>
-            For another device on the same Wi-Fi, use the Network URL shown by Vite
-            and add /ask at the end.
+            Email backup can be enabled in Render with SMTP environment variables.
+            The Export CSV button gives you a manual backup at any time.
           </p>
         </div>
 
@@ -262,14 +278,25 @@ function AdminQuestionsPage() {
             <span>{newQuestions.length} waiting for review</span>
           </div>
 
-          <button
-            type="button"
-            className="danger-button"
-            disabled={answeredQuestions.length === 0}
-            onClick={handleDeleteAnswered}
-          >
-            Delete answered
-          </button>
+          <div className="admin-actions">
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={exporting}
+              onClick={handleExportCsv}
+            >
+              {exporting ? 'Exporting...' : 'Export CSV'}
+            </button>
+
+            <button
+              type="button"
+              className="danger-button"
+              disabled={answeredQuestions.length === 0}
+              onClick={handleDeleteAnswered}
+            >
+              Delete answered
+            </button>
+          </div>
         </div>
 
         {errorMessage && (
