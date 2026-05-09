@@ -5,6 +5,7 @@ const os = require('os')
 const fs = require('fs')
 const path = require('path')
 const questionRoutes = require('./routes/questionRoutes')
+const { getStorageStatus } = require('./services/questionStorageService')
 
 dotenv.config()
 
@@ -119,11 +120,14 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: '30kb' }))
 
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const storage = await getStorageStatus()
+
   res.json({
     ok: true,
     app: 'Anonymous Question Box',
     mode: process.env.NODE_ENV || 'development',
+    storage,
     timestamp: new Date().toISOString()
   })
 })
